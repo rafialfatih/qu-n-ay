@@ -1,5 +1,8 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthenticateUserController;
+use App\Http\Controllers\Auth\RegisterUserController;
+use App\Http\Controllers\Question\QuestionController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -16,3 +19,18 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [AuthenticateUserController::class, 'create'])->name('login');
+    Route::post('/login', [AuthenticateUserController::class, 'store']);
+
+    Route::get('/register', [RegisterUserController::class, 'create']);
+    Route::post('/register', [RegisterUserController::class, 'store']);
+});
+
+Route::middleware('auth')->group(function () {
+    Route::resource('questions', QuestionController::class)->except('index', 'show');
+    Route::post('/logout', [AuthenticateUserController::class, 'destroy']);
+});
+
+Route::resource('questions', QuestionController::class)->only('index', 'show');
