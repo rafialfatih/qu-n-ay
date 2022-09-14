@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use App\Models\Question;
 use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
-use Illuminate\Support\Facades\Auth;
 
 class QuestionController extends Controller
 {
@@ -18,7 +17,7 @@ class QuestionController extends Controller
     public function index()
     {
         return view('questions.index', [
-            'questions' => Question::with('user')->latest()->paginate(10),
+            'questions' => Question::with('user')->votes()->get(),
         ]);
     }
 
@@ -70,9 +69,11 @@ class QuestionController extends Controller
      */
     public function edit(Question $question)
     {
-        if ($question->user_id !== auth()->id()) {
-            abort(403, 'Unauthorized action!');
-        }
+        abort_if(
+            $question->user_id !== auth()->id(),
+            403,
+            'Unauthorized action!'
+        );
 
         return view('questions.edit', [
             'question' => $question
@@ -103,6 +104,12 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
-        //
+        abort_if(
+            $question->user_id !== auth()->id(),
+            403,
+            'Unauthorized action!'
+        );
+
+        $question->delete();
     }
 }
