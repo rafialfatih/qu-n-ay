@@ -47,4 +47,19 @@ class User extends Authenticatable
     {
         return $this->hasMany(Question::class);
     }
+
+    public function answers()
+    {
+        return $this->hasMany(Answer::class);
+    }
+
+    public function questionVotes()
+    {
+        return $this->hasManyThrough(Question::class, QuestionVote::class);
+    }
+
+    public function answerVotes()
+    {
+        return $this->hasManyThrough(Answer::class, AnswerVote::class);
+    }
 }
