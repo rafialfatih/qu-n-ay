@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Question>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\QuestionVote>
  */
-class QuestionFactory extends Factory
+class QuestionVoteFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -18,10 +18,8 @@ class QuestionFactory extends Factory
     {
         return [
             'user_id' => 1,
-            'title' => 'Title 1',
-            'slug' => 'title-1',
-            'question' => fake()->paragraph(),
-            'tags' => 'tag1, tag2',
+            'question_id' => 1,
+            'vote' => 'up'
         ];
     }
 }
