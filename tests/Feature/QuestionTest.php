@@ -31,7 +31,8 @@ class QuestionTest extends TestCase
         ]);
 
         $response->assertOk()
-            ->assertSee('Questions');
+            ->assertSee('Questions')
+            ->assertSee($question->title);
 
         $this->assertEquals(1, Question::count());
     }
@@ -71,6 +72,7 @@ class QuestionTest extends TestCase
 
         $response->assertRedirect('/questions')
             ->assertSessionHas('message');
+        $this->assertEquals(1, Question::count());
     }
 
     /** @test */
@@ -100,5 +102,25 @@ class QuestionTest extends TestCase
         $this->assertEquals('tag1,tag3', Question::first()->tags);
         $response->assertRedirect('question')
             ->assertSessionHas('message');
+    }
+
+    /** @test */
+    public function user_can_delete_question()
+    {
+        $user = User::factory()->create();
+        $question = Question::factory()->create(['user_id' => $user->id]);
+        $this->actingAs($user);
+
+        $this->post('/questions', [
+            'user_id' => $question->user_id,
+            'title' => 'Title',
+            'question' => 'Question',
+            'tags' => 'tag1,tag2',
+        ]);
+
+        $questions = Question::first();
+
+        $response = $this->delete('/questions/' . $questions->id);
+        $this->assertEquals(1, Question::count());
     }
 }
