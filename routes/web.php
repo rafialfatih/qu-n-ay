@@ -21,9 +21,6 @@ Route::get('/', function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/login', [AuthenticateUserController::class, 'create'])->name('login');
-    Route::post('/login', [AuthenticateUserController::class, 'store']);
-
     Route::get('/register', [RegisterUserController::class, 'create']);
     Route::post('/register', [RegisterUserController::class, 'store']);
 });
@@ -33,4 +30,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthenticateUserController::class, 'destroy']);
 });
 
-Route::resource('questions', QuestionController::class)->only('index', 'show');
+Route::get('/questions', [QuestionController::class, 'index']);
+Route::get('/questions/{id}/{slug?}', [QuestionController::class, 'show']);
+
+Route::get('/login', [AuthenticateUserController::class, 'create'])->name('login');
+Route::post('/login', [AuthenticateUserController::class, 'store']);
