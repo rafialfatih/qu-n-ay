@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class StoreQuestionRequest extends FormRequest
 {
@@ -26,7 +27,6 @@ class StoreQuestionRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:100'],
             'question' => ['required', 'string'],
-            'tags' => ['required', 'string'],
         ];
     }
 }
