@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers\Question;
 
+use App\Actions\CreateQuestionTag;
 use App\Http\Controllers\Controller;
 use App\Models\Question;
 use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
+use Illuminate\Support\Str;
 
 class QuestionController extends Controller
 {
@@ -17,7 +19,10 @@ class QuestionController extends Controller
     public function index()
     {
         return view('questions.index', [
-            'questions' => Question::with('user')->votes()->get(),
+            'questions' => Question::with(['user', 'tags'])
+                ->votes()
+                ->orderBy('created_at', 'desc')
+                ->get(),
         ]);
     }
 
@@ -37,13 +42,19 @@ class QuestionController extends Controller
      * @param  \App\Http\Requests\StoreQuestionRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreQuestionRequest $request)
+    public function store(StoreQuestionRequest $request, CreateQuestionTag $createQuestionTag)
     {
-        $question = $request->validated();
+        $question = $request->safe()->merge([
+            'user_id' => auth()->id(),
+            'slug' => Str::slug($request->title)
+        ]);
 
-        $question['user_id'] = auth()->id();
+        $tags = remove_tags_whitespace($request->tags);
+        $tagIds = $createQuestionTag->handle($tags);
 
-        Question::create($question);
+        Question::create($question->all())
+            ->tags()
+            ->attach($tagIds);
 
         return redirect('/questions')->with('message', 'Your question has been submitted');
     }
@@ -54,10 +65,15 @@ class QuestionController extends Controller
      * @param  \App\Models\Question  $question
      * @return \Illuminate\Http\Response
      */
-    public function show(Question $question)
+    public function show(Question $question, $slug)
     {
+        abort_if(
+            $slug !== $question->slug,
+            404,
+        );
+
         return view('questions.show', [
-            'question' => $question
+            'question' => $question,
         ]);
     }
 
@@ -72,7 +88,6 @@ class QuestionController extends Controller
         abort_if(
             $question->user_id !== auth()->id(),
             403,
-            'Unauthorized action!'
         );
 
         return view('questions.edit', [
@@ -107,7 +122,6 @@ class QuestionController extends Controller
         abort_if(
             $question->user_id !== auth()->id(),
             403,
-            'Unauthorized action!'
         );
 
         $question->delete();
