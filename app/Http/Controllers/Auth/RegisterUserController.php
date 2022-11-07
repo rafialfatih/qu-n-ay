@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\RegisterUserRequest;
 use App\Models\User;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 class RegisterUserController extends Controller
@@ -18,7 +17,7 @@ class RegisterUserController extends Controller
     public function store(RegisterUserRequest $request)
     {
         $user = $request->validated();
-        $user['password'] = bcrypt($user['password']);
+        $user->password = bcrypt($user->password);
 
         $register = User::create($user);
 
