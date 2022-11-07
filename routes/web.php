@@ -31,7 +31,7 @@ Route::middleware('auth')->group(function () {
 });
 
 Route::get('/questions', [QuestionController::class, 'index']);
-Route::get('/questions/{id}/{slug?}', [QuestionController::class, 'show']);
+Route::get('/questions/{question}/{slug?}', [QuestionController::class, 'show']);
 
 Route::get('/login', [AuthenticateUserController::class, 'create'])->name('login');
 Route::post('/login', [AuthenticateUserController::class, 'store']);
