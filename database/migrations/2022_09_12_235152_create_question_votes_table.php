@@ -15,10 +15,12 @@ return new class extends Migration
     {
         Schema::create('question_votes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('question_id')->constrained()->onDelete('cascade');
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->uuid('question_id')->constrained()->cascadeOnDelete();
             $table->enum('vote', ['up', 'down']);
             $table->timestamps();
+
+            $table->foreign('question_id')->references('id')->on('questions');
         });
     }
 
