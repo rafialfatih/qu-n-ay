@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Question;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -26,7 +26,7 @@ class UpdateQuestionRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:100'],
             'question' => ['required', 'string'],
-            'tags' => ['required', 'string'],
+            'tags' => ['required']
         ];
     }
 }

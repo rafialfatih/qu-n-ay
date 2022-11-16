@@ -1,9 +1,8 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Question;
 
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Support\Str;
 
 class StoreQuestionRequest extends FormRequest
 {
@@ -27,6 +26,7 @@ class StoreQuestionRequest extends FormRequest
         return [
             'title' => ['required', 'string', 'max:100'],
             'question' => ['required', 'string'],
+            'tags' => ['required']
         ];
     }
 }
