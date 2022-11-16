@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\Question;
 
 use App\Actions\CreateQuestionTag;
+use App\Actions\EditQuestionTag;
 use App\Http\Controllers\Controller;
 use App\Models\Question;
 use App\Http\Requests\StoreQuestionRequest;
 use App\Http\Requests\UpdateQuestionRequest;
+use App\Models\Tag;
+use App\Services\QuestionService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class QuestionController extends Controller
@@ -19,10 +23,11 @@ class QuestionController extends Controller
     public function index()
     {
         return view('questions.index', [
-            'questions' => Question::with(['user', 'tags'])
-                ->votes()
+            'questions' => Question::with(['user', 'tags'])->withCount(
+                ['votes as upvotes_count' => fn (Builder $query) => $query->where('vote', 'up')]
+            )
                 ->orderBy('created_at', 'desc')
-                ->get(),
+                ->get()
         ]);
     }
 
@@ -42,19 +47,15 @@ class QuestionController extends Controller
      * @param  \App\Http\Requests\StoreQuestionRequest  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreQuestionRequest $request, CreateQuestionTag $createQuestionTag)
+    public function store(StoreQuestionRequest $request, QuestionService $questionService)
     {
-        $question = $request->safe()->merge([
-            'user_id' => auth()->id(),
-            'slug' => Str::slug($request->title)
-        ]);
+        $store = $request->safe()
+            ->merge([
+                'user_id' => auth()->id(),
+                'slug' => Str::slug($request->title)
+            ]);
 
-        $tags = remove_tags_whitespace($request->tags);
-        $tagIds = $createQuestionTag->handle($tags);
-
-        Question::create($question->all())
-            ->tags()
-            ->attach($tagIds);
+        $questionService->createQuestion($store->all());
 
         return redirect('/questions')->with('message', 'Your question has been submitted');
     }
@@ -72,6 +73,12 @@ class QuestionController extends Controller
             404,
         );
 
+        $question = Question::withCount(
+            ['votes as upvotes_count' => fn (Builder $query) => $query->where('vote', 'up')]
+        )
+            ->where('id', $question->id)
+            ->firstOrFail();
+
         return view('questions.show', [
             'question' => $question,
         ]);
@@ -83,15 +90,24 @@ class QuestionController extends Controller
      * @param  \App\Models\Question  $question
      * @return \Illuminate\Http\Response
      */
-    public function edit(Question $question)
+    public function edit(Question $question, QuestionService $questionService, $slug)
     {
         abort_if(
             $question->user_id !== auth()->id(),
             403,
         );
 
+        abort_if(
+            $question->slug !== $slug,
+            404,
+        );
+
+        $question = Question::where('id', $question->id)->firstOrFail();
+        $tags = $questionService->editQuestionTag($question->tags);
+
         return view('questions.edit', [
-            'question' => $question
+            'question' => $question,
+            'tags' => $tags
         ]);
     }
 
@@ -102,13 +118,17 @@ class QuestionController extends Controller
      * @param  \App\Models\Question  $question
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateQuestionRequest $request, Question $question)
+    public function update(UpdateQuestionRequest $request, Question $question, QuestionService $questionService)
     {
-        $field = $request->validated();
+        $update = $request->safe()->merge([
+            'slug' => Str::slug($request->title)
+        ]);
 
-        $question->update($field);
+        $questionService->updateQuestion($update->all(), $question->id);
 
-        return back()->with('message', 'Question updated!');
+        return redirect()
+            ->route('question.show', ['question' => $question, 'slug' => $update->slug])
+            ->with('message', 'Your question has been updated!');
     }
 
     /**
@@ -124,6 +144,7 @@ class QuestionController extends Controller
             403,
         );
 
+        $question->tags->detach();
         $question->delete();
     }
 }
