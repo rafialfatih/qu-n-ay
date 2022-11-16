@@ -40,9 +40,4 @@ class Question extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
-
-    public function scopeVotes($query)
-    {
-        return $query->withCount(['votes as upvotes_count' => fn ($query) => $query->where('vote', 'up')]);
-    }
 }
