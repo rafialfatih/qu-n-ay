@@ -21,17 +21,27 @@ Route::get('/', function () {
 });
 
 Route::middleware('guest')->group(function () {
-    Route::get('/register', [RegisterUserController::class, 'create']);
-    Route::post('/register', [RegisterUserController::class, 'store']);
+    Route::get('register', [RegisterUserController::class, 'create'])->name('register.create');
+    Route::post('register', [RegisterUserController::class, 'store'])->name('register.post');
+
+    Route::get('login', [AuthenticateUserController::class, 'create'])->name('auth.create');
 });
 
 Route::middleware('auth')->group(function () {
-    Route::resource('questions', QuestionController::class)->except('index', 'show');
-    Route::post('/logout', [AuthenticateUserController::class, 'destroy']);
+    Route::resource('questions', QuestionController::class)
+        ->except(['show', 'index', 'edit'])
+        ->names([
+            'create' => 'question.create',
+            'store' => 'question.store',
+            'update' => 'question.update',
+            'destroy' => 'question.destroy'
+        ]);
+    Route::get('questions/{question}/{slug?}/edit', [QuestionController::class, 'edit'])->name('question.edit');
+
+    Route::post('logout', [AuthenticateUserController::class, 'destroy'])->name('auth.destroy');
 });
 
-Route::get('/questions', [QuestionController::class, 'index']);
-Route::get('/questions/{question}/{slug?}', [QuestionController::class, 'show']);
+Route::get('questions', [QuestionController::class, 'index'])->name('question.index');
+Route::get('questions/{question}/{slug?}', [QuestionController::class, 'show'])->name('question.show');
 
-Route::get('/login', [AuthenticateUserController::class, 'create'])->name('login');
-Route::post('/login', [AuthenticateUserController::class, 'store']);
+Route::post('login', [AuthenticateUserController::class, 'store'])->name('auth.post');
