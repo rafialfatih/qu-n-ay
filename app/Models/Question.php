@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Http\Traits\UseUuid;
+use Illuminate\Database\Eloquent\Builder;
 
 class Question extends Model
 {
@@ -39,5 +40,12 @@ class Question extends Model
     public function tags(): BelongsToMany
     {
         return $this->belongsToMany(Tag::class);
+    }
+
+    public function scopeVotes($query)
+    {
+        $query->withCount(
+            ['votes as upvotes_count' => fn (Builder $query) => $query->where('vote', 'up')]
+        );
     }
 }
