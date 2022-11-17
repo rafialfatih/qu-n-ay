@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Answer\AnswerController;
 use App\Http\Controllers\Auth\AuthenticateUserController;
 use App\Http\Controllers\Auth\RegisterUserController;
 use App\Http\Controllers\Question\QuestionController;
@@ -37,6 +38,8 @@ Route::middleware('auth')->group(function () {
             'destroy' => 'question.destroy'
         ]);
     Route::get('questions/{question}/{slug?}/edit', [QuestionController::class, 'edit'])->name('question.edit');
+
+    Route::post('answers', [AnswerController::class, 'store'])->name('answer.store');
 
     Route::post('logout', [AuthenticateUserController::class, 'destroy'])->name('auth.destroy');
 });
