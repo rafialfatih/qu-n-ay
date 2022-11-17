@@ -8,6 +8,7 @@ use App\Http\Requests\Question\StoreQuestionRequest;
 use App\Http\Requests\Question\UpdateQuestionRequest;
 use App\Services\QuestionService;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Str;
 
 class QuestionController extends Controller
@@ -20,9 +21,8 @@ class QuestionController extends Controller
     public function index()
     {
         return view('questions.index', [
-            'questions' => Question::with(['user', 'tags'])->withCount(
-                ['votes as upvotes_count' => fn (Builder $query) => $query->where('vote', 'up')]
-            )
+            'questions' => Question::with(['user', 'tags'])
+                ->votes()
                 ->orderBy('created_at', 'desc')
                 ->get()
         ]);
@@ -70,9 +70,8 @@ class QuestionController extends Controller
             404,
         );
 
-        $question = Question::withCount(
-            ['votes as upvotes_count' => fn (Builder $query) => $query->where('vote', 'up')]
-        )
+        $question = Question::with(['user', 'tags', 'answers'])
+            ->votes()
             ->where('id', $question->id)
             ->firstOrFail();
 
