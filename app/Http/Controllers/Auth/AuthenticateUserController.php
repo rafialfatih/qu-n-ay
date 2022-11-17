@@ -23,7 +23,7 @@ class AuthenticateUserController extends Controller
             return redirect('/')->with('message', 'You are logged in!');
         }
 
-        return back()->withErrors(['message' => 'Invalid credentials!'])->onlyInput('username');
+        return back()->withErrors(['message' => 'Invalid credentials!'])->onlyInput('email');
     }
 
     public function destroy(Request $request)
