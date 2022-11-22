@@ -9,13 +9,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Builder;
-use App\Http\Traits\UseUuid;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 class Question extends Model
 {
-  use HasFactory;
-  use UseUuid;
+  use HasFactory, HasUuids;
 
   protected $dates = [
     'created_at',
