@@ -13,7 +13,7 @@ class AnswerVote extends Model
     protected $fillable = [
         'user_id',
         'question_id',
-        'vote'
+        'vote',
     ];
 
     public function user(): BelongsTo

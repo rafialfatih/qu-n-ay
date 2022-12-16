@@ -13,8 +13,10 @@ class QuestionVote extends Model
     protected $fillable = [
         'user_id',
         'question_id',
-        'vote'
+        'vote',
     ];
+
+    public $timestamps = false;
 
     public function user(): BelongsTo
     {

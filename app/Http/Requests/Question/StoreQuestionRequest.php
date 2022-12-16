@@ -25,8 +25,8 @@ class StoreQuestionRequest extends FormRequest
     {
         return [
             'title' => ['required', 'string', 'max:100'],
-            'question' => ['required', 'string'],
-            'tags' => ['required']
+            'question' => ['required', 'min:50', 'string'],
+            'tags' => ['required'],
         ];
     }
 }

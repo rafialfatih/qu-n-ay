@@ -24,7 +24,7 @@ class StoreAnswerRequest extends FormRequest
     public function rules()
     {
         return [
-            'answer' => ['required', 'string']
+            'answer' => ['required', 'string'],
         ];
     }
 }

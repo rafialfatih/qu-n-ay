@@ -21,7 +21,7 @@ class QuestionService
     }
 
     /**
-     * Update question 
+     * Update question
      */
     public function updateQuestion($question, $id)
     {
@@ -45,7 +45,7 @@ class QuestionService
         $tagIds = [];
         foreach ($tags as $tag) {
             Tag::firstOrCreate([
-                'tags' => $tag
+                'tags' => $tag,
             ]);
 
             $tagName = Tag::where('tags', $tag)->first();
@@ -53,6 +53,7 @@ class QuestionService
         }
 
         $tagIds = array_values(array_unique($tagIds));
+
         return $tagIds;
     }
 

@@ -16,10 +16,11 @@ class RegisterUserController extends Controller
 
     public function store(RegisterUserRequest $request)
     {
-        $user = $request->validated();
-        $user->password = bcrypt($user->password);
+        $user = $request->safe()->merge([
+            'password' => bcrypt($request->password),
+        ]);
 
-        $register = User::create($user);
+        $register = User::create($user->all());
 
         Auth::login($register);
 

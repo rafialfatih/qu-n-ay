@@ -1,6 +1,6 @@
 <?php
 
-if (!function_exists('remove_tags_whitespace')) {
+if (! function_exists('remove_tags_whitespace')) {
     function remove_tags_whitespace($tagItem)
     {
         $tags = explode(',', trim($tagItem));
