@@ -4,12 +4,8 @@ namespace Tests\Feature;
 
 use App\Models\Question;
 use App\Models\User;
-use Illuminate\Auth\Authenticatable;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
-
-use function PHPUnit\Framework\assertEquals;
 
 class QuestionTest extends TestCase
 {
@@ -91,7 +87,7 @@ class QuestionTest extends TestCase
 
         $questions = Question::first();
 
-        $response = $this->from('question')->put('/questions/' . $questions->id, [
+        $response = $this->from('question')->put('/questions/'.$questions->id, [
             'title' => 'New Title',
             'question' => 'New Question',
             'tags' => 'tag1,tag3',
@@ -120,7 +116,7 @@ class QuestionTest extends TestCase
 
         $questions = Question::first();
 
-        $response = $this->delete('/questions/' . $questions->id);
+        $response = $this->delete('/questions/'.$questions->id);
         $this->assertEquals(1, Question::count());
     }
 }

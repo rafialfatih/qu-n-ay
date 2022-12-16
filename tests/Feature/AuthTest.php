@@ -4,7 +4,6 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
@@ -14,6 +13,7 @@ class AuthTest extends TestCase
     public function actingAsAuth()
     {
         $user = User::factory()->create();
+
         return $this->actingAs($user);
     }
 
@@ -62,7 +62,7 @@ class AuthTest extends TestCase
 
         $response = $this->post('/login', [
             'username' => $user->username,
-            'password' => 'password'
+            'password' => 'password',
         ]);
 
         $response->assertRedirect('/')
@@ -78,7 +78,7 @@ class AuthTest extends TestCase
 
         $response = $this->from('login')->post('/login', [
             'username' => $user->username,
-            'password' => 'wrongpassword'
+            'password' => 'wrongpassword',
         ]);
 
         $response->assertRedirect('login')
