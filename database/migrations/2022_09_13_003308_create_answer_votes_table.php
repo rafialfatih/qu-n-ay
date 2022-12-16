@@ -16,9 +16,10 @@ return new class extends Migration
         Schema::create('answer_votes', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('answer_id')->constrained()->onDelete('cascade');
+            $table->uuid('answer_id')->constrained()->onDelete('cascade');
             $table->enum('vote', ['up', 'down']);
-            $table->timestamps();
+
+            $table->foreign('answer_id')->references('id')->on('answers');
         });
     }
 

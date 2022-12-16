@@ -17,11 +17,11 @@ class QuestionFactory extends Factory
     public function definition()
     {
         return [
+            'id' => fake()->uuid(),
             'user_id' => 1,
             'title' => 'Title 1',
             'slug' => 'title-1',
             'question' => fake()->paragraph(),
-            'tags' => 'tag1, tag2',
         ];
     }
 }

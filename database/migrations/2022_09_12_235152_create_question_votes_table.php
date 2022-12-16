@@ -18,7 +18,6 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->uuid('question_id')->constrained()->cascadeOnDelete();
             $table->enum('vote', ['up', 'down']);
-            $table->timestamps();
 
             $table->foreign('question_id')->references('id')->on('questions');
         });

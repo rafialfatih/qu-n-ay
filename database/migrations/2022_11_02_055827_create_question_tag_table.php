@@ -16,7 +16,6 @@ return new class extends Migration
         Schema::create('question_tag', function (Blueprint $table) {
             $table->uuid('question_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
             $table->foreignId('tag_id')->constrained()->cascadeOnUpdate()->cascadeOnDelete();
-            $table->timestamps();
 
             $table->foreign('question_id')->references('id')->on('questions');
         });

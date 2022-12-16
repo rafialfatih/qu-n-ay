@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use App\Models\Question;
 use App\Models\QuestionVote;
+use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
@@ -26,6 +27,7 @@ class DatabaseSeeder extends Seeder
         // ]);
         User::factory(1)->create();
         Question::factory(1)->create();
-        QuestionVote::factory(4)->create();
+        // QuestionVote::factory(4)->create();
+        Tag::factory(3)->create();
     }
 }
