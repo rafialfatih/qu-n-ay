@@ -1,12 +1,14 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Document</title>
-</head>
-<body>
-  Register
-</body>
-</html>
+  <form action="{{ route('auth.store') }}" method="post">
+  @csrf
+    <h5>Email</h5>
+    <input type="email" name="email">
+    <h5>Name</h5>
+    <input type="text" name="name">
+    <h5>Username</h5>
+    <input type="text" name="username">
+    <h5>Password</h5>
+    <input type="password" name="password">
+    <h5>Confirm Passowrd</h5>
+    <input type="password" name="password_confirmation">
+    <button type="submit">Register</button>
+  </form>
