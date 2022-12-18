@@ -8,6 +8,7 @@ use App\Http\Requests\Question\UpdateQuestionRequest;
 use App\Models\Answer;
 use App\Models\Question;
 use App\Services\QuestionService;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class QuestionController extends Controller
@@ -21,10 +22,10 @@ class QuestionController extends Controller
     {
         return view('questions.index', [
             'questions' => Question::with(['user', 'tags'])
-              ->votes()
-              ->answersCount()
-              ->orderByDesc('created_at')
-              ->paginate(15),
+                ->votes()
+                ->answersCount()
+                ->orderByDesc('created_at')
+                ->paginate(15),
         ]);
     }
 
@@ -46,11 +47,13 @@ class QuestionController extends Controller
      */
     public function store(StoreQuestionRequest $request, QuestionService $questionService)
     {
+        Gate::authorize('create');
+
         $store = $request->safe()
-          ->merge([
-              'user_id' => auth()->id(),
-              'slug' => Str::slug($request->title),
-          ]);
+            ->merge([
+                'user_id' => auth()->id(),
+                'slug' => Str::slug($request->title),
+            ]);
 
         $questionService->createQuestion($store->all());
 
@@ -65,19 +68,14 @@ class QuestionController extends Controller
      */
     public function show(Question $question, $slug)
     {
-        abort_if(
-            $slug !== $question->slug,
-            404,
-        );
-
         $question = Question::with(['user', 'tags'])
-          ->votes()
-          ->where('id', $question->id)
-          ->firstOrFail();
+            ->votes()
+            ->where('id', $question->id)
+            ->firstOrFail();
 
         $answer = Answer::with('user')
-          ->where('question_id', $question->id)
-          ->get();
+            ->where('question_id', $question->id)
+            ->get();
 
         return view('questions.show', [
             'question' => $question,
@@ -93,15 +91,7 @@ class QuestionController extends Controller
      */
     public function edit(Question $question, QuestionService $questionService, $slug)
     {
-        abort_if(
-            $question->user_id !== auth()->id(),
-            403,
-        );
-
-        abort_if(
-            $question->slug !== $slug,
-            404,
-        );
+        Gate::authorize('view', $question);
 
         $question = Question::where('id', $question->id)->firstOrFail();
         $tags = $questionService->editQuestionTag($question->tags);
@@ -121,6 +111,8 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Question $question, QuestionService $questionService)
     {
+        Gate::authorize('update', $question);
+
         $update = $request->safe()->merge([
             'slug' => Str::slug($request->title),
         ]);
@@ -128,8 +120,8 @@ class QuestionController extends Controller
         $questionService->updateQuestion($update->all(), $question->id);
 
         return redirect()
-          ->route('question.show', ['question' => $question, 'slug' => $update->slug])
-          ->with('message', 'Your question has been updated!');
+            ->route('question.show', ['question' => $question, 'slug' => $update->slug])
+            ->with('message', 'Your question has been updated!');
     }
 
     /**
@@ -140,10 +132,7 @@ class QuestionController extends Controller
      */
     public function destroy(Question $question)
     {
-        abort_if(
-            $question->user_id !== auth()->id(),
-            403,
-        );
+        Gate::authorize('delete', $question);
 
         $question->tags->detach();
         $question->delete();
