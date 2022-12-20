@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 
 class Question extends Model
 {
@@ -48,43 +49,34 @@ class Question extends Model
         return $this->belongsToMany(Tag::class);
     }
 
+    public function createdAt(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => Carbon::parse($value)->diffForHumans()
+        );
+    }
+
     public function scopeVotes($query)
     {
-        $query->withCount(
-            ['votes as upvotes_count' => fn (Builder $query) => $query->where('vote', 'up')]
-        );
-        // $query->select(DB::raw(
-        //   '(count(case when question_votes.vote = "up" then 1 else null end) -
-    //     count(case when question_votes.vote = "down" then 1 else null end))
-    //     as upvotes_count
-        //   '
-        // ))
-        //   ->from(['question_votes', 'questions'])
-        //   ->whereIn('question_votes.question_id', DB::table('questions')->pluck('id')->toArray())
-        //   ->groupBy('question_votes.question_id');
+        $query->withCount(['votes as upvotes_count' => function (Builder $query) {
+            $query->select(
+                DB::raw(
+                    '(count(case when question_votes.vote = "up" then 1 else null end) -
+                    count(case when question_votes.vote = "down" then 1 else null end))'
+                )
+            );
+        }]);
     }
 
     public function scopeFilter($query, array $filters)
     {
         if ($filters['tag'] ?? false) {
-            $query->where('tags.tags', 'LIKE', '%'.request('tag').'%');
+            $query->where('tags.tags', 'LIKE', '%' . request('tag') . '%');
         }
 
         if ($filters['q'] ?? false) {
-            $query->where('questions.title', 'LIKE', '%'.request('q').'%')
-              ->orWhere('tags.tags', 'LIKE', '%'.request('q').'%');
+            $query->where('questions.title', 'LIKE', '%' . request('q') . '%')
+                ->orWhere('tags.tags', 'LIKE', '%' . request('q') . '%');
         }
-    }
-
-    public function scopeAnswersCount($query)
-    {
-        $query->withCount('answers');
-    }
-
-    public function createdAt(): Attribute
-    {
-        return Attribute::make(
-            get: fn ($value) => Carbon::parse($value)->shortRelativeDiffForHumans()
-        );
     }
 }
