@@ -22,8 +22,8 @@ class QuestionController extends Controller
     {
         return view('questions.index', [
             'questions' => Question::with(['user', 'tags'])
+                ->withCount('answers')
                 ->votes()
-                ->answersCount()
                 ->orderByDesc('created_at')
                 ->paginate(15),
         ]);
@@ -66,7 +66,7 @@ class QuestionController extends Controller
      * @param  \App\Models\Question  $question
      * @return \Illuminate\Http\Response
      */
-    public function show(Question $question, $slug)
+    public function show(Question $question)
     {
         $question = Question::with(['user', 'tags'])
             ->votes()
