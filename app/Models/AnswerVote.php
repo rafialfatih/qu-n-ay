@@ -12,17 +12,19 @@ class AnswerVote extends Model
 
     protected $fillable = [
         'user_id',
-        'question_id',
+        'answer_id',
         'vote',
     ];
+
+    public $timestamps = false;
 
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function question(): BelongsTo
+    public function answers(): BelongsTo
     {
-        return $this->belongsTo(Question::class);
+        return $this->belongsTo(Answer::class);
     }
 }
