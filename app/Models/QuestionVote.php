@@ -23,7 +23,7 @@ class QuestionVote extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function question(): BelongsTo
+    public function questions(): BelongsTo
     {
         return $this->belongsTo(Question::class);
     }
