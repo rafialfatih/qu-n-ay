@@ -39,7 +39,7 @@ class Question extends Model
         return $this->hasMany(Answer::class);
     }
 
-    public function votes(): HasMany
+    public function questionVotes(): HasMany
     {
         return $this->hasMany(QuestionVote::class);
     }
@@ -58,7 +58,7 @@ class Question extends Model
 
     public function scopeVotes($query)
     {
-        $query->withCount(['votes as upvotes_count' => function (Builder $query) {
+        $query->withCount(['questionVotes as upvotes_count' => function (Builder $query) {
             $query->select(
                 DB::raw(
                     '(count(case when question_votes.vote = "up" then 1 else null end) -
