@@ -24,7 +24,10 @@ class AnswerController extends Controller
 
     public function edit(Question $question)
     {
-        $answer = $question->answers()->with(['questions', 'user'])->first();
+        $answer = $question
+            ->answers()
+            ->with(['questions', 'user'])
+            ->first();
 
         abort_if(
             $answer->user_id !== auth()->id(),
@@ -41,7 +44,10 @@ class AnswerController extends Controller
     {
         $update = $request->validated();
 
-        $answer = $question->answers()->with(['question', 'user'])->first();
+        $answer = $question
+            ->answers()
+            ->with(['question', 'user'])
+            ->first();
 
         abort_if(
             $answer->user_id !== auth()->id(),
@@ -51,13 +57,16 @@ class AnswerController extends Controller
         $answer->update($update);
 
         return redirect()
-          ->route('question.show', [$question->id, $question->slug])
-          ->with('message', 'Your answer has been updated successfully!');
+            ->route('question.show', [$question->id, $question->slug])
+            ->with('message', 'Your answer has been updated successfully!');
     }
 
     public function destroy(Question $question)
     {
-        $answer = $question->answers()->with(['question', 'user'])->first();
+        $answer = $question
+            ->answers()
+            ->with(['question', 'user'])
+            ->first();
 
         abort_if(
             $answer->user_id !== auth()->id(),
@@ -67,7 +76,7 @@ class AnswerController extends Controller
         $answer->delete();
 
         return redirect()
-          ->route('question.show', [$question->id, $question->slug])
-          ->with('message', 'Your answer has been deleted successfully!');
+            ->route('question.show', [$question->id, $question->slug])
+            ->with('message', 'Your answer has been deleted successfully!');
     }
 }
