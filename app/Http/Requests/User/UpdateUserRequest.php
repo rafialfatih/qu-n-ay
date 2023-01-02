@@ -29,20 +29,20 @@ class UpdateUserRequest extends FormRequest
                 'required',
                 'min:3',
                 'max:30',
-                'string'
+                'string',
             ],
             'username' => [
                 'required',
                 'min:6',
                 'max:20',
                 'regex:/^[a-zA-Z0-9][\w\.]+[a-zA-Z0-9]$/',
-                Rule::unique('users', 'username')->ignore($this->user)
+                Rule::unique('users', 'username')->ignore($this->user),
             ],
             'email' => [
                 'required',
                 'email',
                 'max:50',
-                Rule::unique('users', 'email')->ignore($this->user)
+                Rule::unique('users', 'email')->ignore($this->user),
             ],
         ];
     }

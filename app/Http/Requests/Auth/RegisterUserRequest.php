@@ -25,7 +25,7 @@ class RegisterUserRequest extends FormRequest
     public function rules()
     {
         return [
-            'username' => ['required', 'min:6', 'max:20', 'alpha_num', Rule::unique('users', 'username')],
+            'username' => ['required', 'min:6', 'max:20', 'regex:/^[a-zA-Z0-9][\w\.]+[a-zA-Z0-9]$/', Rule::unique('users', 'username')],
             'name' => ['required', 'min:3', 'max:30', 'string'],
             'email' => ['required', 'email', 'max:50', Rule::unique('users', 'email')],
             'password' => ['required', 'confirmed', 'min:8', 'max:30'],
