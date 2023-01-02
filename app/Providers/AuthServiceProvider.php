@@ -20,7 +20,7 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         // 'App\Models\Model' => 'App\Policies\ModelPolicy',
-        Question::class => QuestionPolicy::class
+        Question::class => QuestionPolicy::class,
     ];
 
     /**
@@ -33,11 +33,20 @@ class AuthServiceProvider extends ServiceProvider
         $this->registerPolicies();
 
         Gate::define('users-vote', function (User $user) {
-            $user->withCount('questions')->first();
+            $count = $user->withCount('questions')->first();
 
-            return $user->questions_count >= 3
+            return $count->questions_count >= 3
                 ? Response::allow()
                 : Response::deny('You must ask 3 questions first before you can vote.');
+        });
+
+        Gate::define('users-edit', function (User $user, $id) {
+            return $user->id === $id;
+        });
+
+        Gate::define('users-allowed', function (User $user, Question $question) {
+            return $question->user->id === auth()->id()
+                && $user->id === $question->user_id;
         });
     }
 }
