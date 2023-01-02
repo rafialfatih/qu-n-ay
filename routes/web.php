@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Answer\AnswerController;
+use App\Http\Controllers\Answer\AnswerVoteController;
 use App\Http\Controllers\Auth\AuthenticateUserController;
 use App\Http\Controllers\Auth\RegisterUserController;
+use App\Http\Controllers\Auth\ResetUserPasswordController;
 use App\Http\Controllers\Question\QuestionController;
 use App\Http\Controllers\Question\QuestionSearchController;
 use App\Http\Controllers\Question\QuestionVoteController;
@@ -38,6 +40,7 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::resource('questions', QuestionController::class)
+        ->middleware('prevent.back')
         ->except(['show', 'index', 'edit'])
         ->names([
             'create' => 'question.create',
@@ -47,6 +50,8 @@ Route::middleware('auth')->group(function () {
         ]);
     Route::get('questions/{question}/{slug?}/edit', [QuestionController::class, 'edit'])
         ->name('question.edit');
+    Route::post('question-vote', QuestionVoteController::class)
+        ->name('question_vote');
 
     Route::name('answer.')->group(function () {
         Route::post('answers', [AnswerController::class, 'store'])
@@ -60,12 +65,13 @@ Route::middleware('auth')->group(function () {
         Route::delete('questions/{question}/answers/{answer}', [AnswerController::class, 'destroy'])
             ->name('delete');
     });
-
-    Route::post('question-vote', QuestionVoteController::class)
-        ->name('question_vote');
+    Route::post('answer-vote', AnswerVoteController::class)
+        ->name('answer_vote');
 
     Route::delete('logout', [AuthenticateUserController::class, 'destroy'])
         ->name('auth.logout');
+    Route::put('reset-password/{user:username}', ResetUserPasswordController::class)
+        ->name('auth.reset_password');
 });
 
 Route::name('question.')->group(function () {
@@ -78,8 +84,12 @@ Route::name('question.')->group(function () {
         ->name('search');
 });
 
-Route::get('user/{user:username}/', [UserController::class, 'show'])
+Route::get('user/{user:username}', [UserController::class, 'show'])
     ->name('user.show');
+Route::put('user/{user:username}', [UserController::class, 'update'])
+    ->name('user.update');
+Route::get('user/{user:username}/edit', [UserController::class, 'edit'])
+    ->name('user.edit');
 
 Route::post('login', [AuthenticateUserController::class, 'store'])
     ->name('auth.login');
