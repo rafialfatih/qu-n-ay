@@ -21,7 +21,7 @@ class AuthenticateUserController extends Controller
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
 
-            return redirect('/')->with('message', 'You are logged in!');
+            return redirect('/questions')->with('message', 'You are logged in!');
         }
 
         return back()->withErrors(['message' => 'Invalid credentials!'])->onlyInput('email');
