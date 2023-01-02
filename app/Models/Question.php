@@ -71,12 +71,12 @@ class Question extends Model
     public function scopeFilter($query, array $filters)
     {
         if ($filters['tag'] ?? false) {
-            $query->where('tags.tags', 'LIKE', '%' . request('tag') . '%');
+            $query->where('tags.tags', 'LIKE', '%'.request('tag').'%');
         }
 
         if ($filters['q'] ?? false) {
-            $query->where('questions.title', 'LIKE', '%' . request('q') . '%')
-                ->orWhere('tags.tags', 'LIKE', '%' . request('q') . '%');
+            $query->where('questions.title', 'LIKE', '%'.request('q').'%')
+                ->orWhere('tags.tags', 'LIKE', '%'.request('q').'%');
         }
     }
 }
