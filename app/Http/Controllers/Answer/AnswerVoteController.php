@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Answer;
 use App\Http\Controllers\Controller;
 use App\Models\AnswerVote;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 
 class AnswerVoteController extends Controller
@@ -19,13 +20,15 @@ class AnswerVoteController extends Controller
     {
         Gate::authorize('users-vote');
 
+        Cache::forget('question-'.$request->question_id);
+
         $vote = AnswerVote::updateOrCreate(
             ['user_id' => auth()->id(), 'answer_id' => $request->answer_id],
             ['vote' => $request->vote]
         );
 
         if ($vote->wasRecentlyCreated === false) {
-            if (!$vote->wasChanged('vote')) {
+            if (! $vote->wasChanged('vote')) {
                 $vote->delete();
             }
         }
