@@ -23,9 +23,9 @@
         <p>
           votes: {{ $question->upvotes_count }}
         </p>
-        <p>
+        <a href="{{ route('user.show', [$question->user->username]) }}">
           {{ $question->user->username }}
-        </p>
+        </a>
         <p>
           Tags:
           @foreach ($question->tags as $tag)
