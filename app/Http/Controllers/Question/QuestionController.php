@@ -78,7 +78,7 @@ class QuestionController extends Controller
             404,
         );
 
-        $question_show = Cache::remember('question-'.$question->id, now()->addMinutes(10), function () use ($question) {
+        $question_show = Cache::remember('question-' . $question->id, now()->addMinutes(10), function () use ($question) {
             return Question::with(['user', 'tags'])
                 ->votes()
                 ->where('id', $question->id)
@@ -105,7 +105,7 @@ class QuestionController extends Controller
     public function edit(Question $question, QuestionService $questionService, $slug)
     {
         abort_if(
-            Gate::denies('users-allowed', $question),
+            Gate::denies('users-allowed', $question->user_id),
             403
         );
 
@@ -132,10 +132,10 @@ class QuestionController extends Controller
      */
     public function update(UpdateQuestionRequest $request, Question $question, QuestionService $questionService)
     {
-        Gate::authorize('users-allowed', $question);
+        Gate::authorize('users-allowed', $question->user_id);
 
         Cache::forget('quesetions');
-        Cache::forget('question-'.$question->id);
+        Cache::forget('question-' . $question->id);
 
         $update = $request->safe()->merge([
             'slug' => Str::slug($request->title),
@@ -162,7 +162,7 @@ class QuestionController extends Controller
         $question->delete();
 
         Cache::forget('questions');
-        Cache::forget('question-'.$question->id);
+        Cache::forget('question-' . $question->id);
 
         return redirect()
             ->route('question.index')
