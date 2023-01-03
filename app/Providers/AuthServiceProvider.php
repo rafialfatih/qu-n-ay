@@ -20,7 +20,6 @@ class AuthServiceProvider extends ServiceProvider
      */
     protected $policies = [
         // 'App\Models\Model' => 'App\Policies\ModelPolicy',
-        Question::class => QuestionPolicy::class,
     ];
 
     /**
@@ -44,9 +43,9 @@ class AuthServiceProvider extends ServiceProvider
             return $user->id === $id;
         });
 
-        Gate::define('users-allowed', function (User $user, Question $question) {
-            return $question->user->id === auth()->id()
-                && $user->id === $question->user_id;
+        Gate::define('users-allowed', function (User $user, $user_id) {
+            return $user->id === auth()->id()
+                && $user->id === $user_id;
         });
     }
 }
