@@ -1,125 +1,82 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class AuthTest extends TestCase
-{
-    use RefreshDatabase;
+it('can be accessed by guest on login page')
+    ->get('/login')
+    ->assertOk()
+    ->assertSee('Login');
 
-    public function actingAsAuth()
-    {
-        $user = User::factory()->create();
 
-        return $this->actingAs($user);
-    }
+it('can be accessed by guest on register page')
+    ->get('/register')
+    ->assertOk()
+    ->assertSee('Register');
 
-    /** @test */
-    public function login_page_can_be_accessed_by_guest()
-    {
-        $response = $this->get('/login');
+it('can register user', function() {
+    $user = User::factory()->create();
 
-        $response->assertOk();
-        $response->assertSee('Login');
-    }
+    $response = $this->post('/register', [
+        'username' => 'test21',
+        'name' => $user->name,
+        'email' => 'test@test.com',
+        'password' => 'secretme',
+        'password_confirmation' => 'secretme',
+    ]);
 
-    /** @test */
-    public function register_page_can_be_accessed_by_guest()
-    {
-        $response = $this->get('/register');
+    $response->assertRedirect('/')
+        ->assertSessionHas('message');
 
-        $response->assertOk();
-        $response->assertSee('Register');
-    }
+    $this->assertAuthenticated();
+});
 
-    /** @test */
-    public function user_can_register()
-    {
-        $this->withoutExceptionHandling();
-        $user = User::factory()->create();
+it('can user login', function(){
+    $user = User::factory()->create();
 
-        $response = $this->post('/register', [
-            'username' => 'test21',
-            'name' => $user->name,
-            'email' => 'test@test.com',
-            'password' => 'secretme',
-            'password_confirmation' => 'secretme',
-        ]);
+    $response = $this->post('/login', [
+        'email' => $user->email,
+        'password' => 'password',
+    ]);
 
-        $response->assertRedirect('/')
-            ->assertSessionHas('message');
+    $response->assertRedirect('/questions')
+        ->assertSessionHas('message');
 
-        $this->assertAuthenticated();
-    }
+    $this->assertAuthenticated();
+});
 
-    /** @test */
-    public function user_can_login()
-    {
-        $user = User::factory()->create();
+it('cannot login user with wrong credentials', function(){
+    $user = User::factory()->create();
 
-        $response = $this->post('/login', [
-            'username' => $user->username,
-            'password' => 'password',
-        ]);
+    $response = $this->from('login')->post('/login', [
+        'email' => $user->email,
+        'password' => 'wrongpassword',
+    ]);
 
-        $response->assertRedirect('/')
-            ->assertSessionHas('message');
+    $response->assertRedirect('login')
+        ->assertSessionHasErrors('message')
+        ->assertSessionHasInput('email');
+});
 
-        $this->assertAuthenticated();
-    }
+it('can logout user', function (){
+    $response = $this->actingAsAuth();
 
-    /** @test */
-    public function user_cannot_login_with_wrong_credentials()
-    {
-        $user = User::factory()->create();
+    $this->delete('/logout')
+        ->assertRedirect('/login')
+        ->assertSessionHas('message');
 
-        $response = $this->from('login')->post('/login', [
-            'username' => $user->username,
-            'password' => 'wrongpassword',
-        ]);
+    $response->assertGuest();
+});
 
-        $response->assertRedirect('login')
-            ->assertSessionHasErrors('message')
-            ->assertSessionHasInput('username');
-    }
+it('cannot guest access authenticated pages')
+    ->get('/questions/create')
+    ->assertRedirect('/login');
 
-    /** @test */
-    public function user_can_logout()
-    {
-        $response = $this->actingAsAuth();
+it('cannot access login page when user is authenticated')
+    ->actingAsAuth()
+    ->get('/login')
+    ->assertRedirect('/');
 
-        $this->post('logout')
-            ->assertRedirect('/login')
-            ->assertSessionHas('message');
-
-        $response->assertGuest();
-    }
-
-    /** @test */
-    public function guest_cannot_access_authenticated_pages()
-    {
-        $this->get('/questions/create')
-            ->assertRedirect('/login');
-    }
-
-    /** @test */
-    public function authenticated_user_cannot_access_login_page()
-    {
-        $this->actingAsAuth();
-
-        $this->get('/login')
-            ->assertRedirect('/');
-    }
-
-    /** @test */
-    public function authenticated_user_cannot_access_register_page()
-    {
-        $this->actingAsAuth();
-
-        $this->get('/register')
-            ->assertRedirect('/');
-    }
-}
+it('cannot access register page when user is authenticated')
+    ->actingAsAuth()
+    ->get('/register')
+    ->assertRedirect('/');

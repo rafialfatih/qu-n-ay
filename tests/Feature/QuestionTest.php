@@ -1,122 +1,84 @@
 <?php
 
-namespace Tests\Feature;
-
 use App\Models\Question;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
-class QuestionTest extends TestCase
-{
-    use RefreshDatabase;
+it('ask a question page can be accessed by authorized user', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
 
-    /** @test */
-    public function index_page_can_be_rendered()
-    {
-        $this->withoutExceptionHandling();
+    $response = $this->get('/questions/create');
 
-        $user = User::factory()->create();
-        $question = Question::factory()->create(['user_id' => $user->id]);
+    $response->assertOk()
+        ->assertSee('Ask your question');
+});
 
-        $response = $this->get('/questions', [
-            'user_id' => $question->user_id,
-            'title' => $question->title,
-            'question' => $question->question,
-            'tags' => 'tag1,tag2',
-        ]);
+it('redirect guest from question form')
+    ->get('/questions/create')
+    ->assertRedirect('/login');
 
-        $response->assertOk()
-            ->assertSee('Questions')
-            ->assertSee($question->title);
 
-        $this->assertEquals(1, Question::count());
-    }
+it('can post a question', function() {
+    $user = User::factory()->create();
+    $question = Question::factory()->create(['user_id' => $user->id]);
+    $this->actingAs($user);
 
-    /** @test */
-    public function ask_a_question_page_can_be_accessed_by_authorized_user()
-    {
-        $user = User::factory()->create();
-        $this->actingAs($user);
+    $response = $this->post('/questions', [
+        'user_id' => $question->user_id,
+        'title' => $question->title,
+        'question' => $question->question,
+        'tags' => 'tag1,tag2',
+    ]);
 
-        $response = $this->get('/questions/create');
+    $response->assertRedirect('/questions')
+        ->assertSessionHas('message');
 
-        $response->assertOk()
-            ->assertSee('Ask your question');
-    }
+    expect(Question::count())->toEqual(2);
+});
 
-    /** @test */
-    public function guest_redirected_to_login_from_ask_a_question_page()
-    {
-        $this->get('/questions/create')
-            ->assertRedirect('/login');
-    }
+it('can edit question', function() {
+    $user = User::factory()->create();
+    $question = Question::factory()->create(['user_id' => $user->id]);
+    $this->actingAs($user);
 
-    /** @test */
-    public function user_can_post_question()
-    {
-        $user = User::factory()->create();
-        $question = Question::factory()->create(['user_id' => $user->id]);
-        $this->actingAs($user);
+    $this->post('/questions', [
+        'user_id' => $question->user_id,
+        'title' => 'Title',
+        'question' => 'Question',
+        'tags' => 'tag1,tag2',
+    ]);
 
-        $response = $this->post('/questions', [
-            'user_id' => $question->user_id,
-            'title' => $question->title,
-            'question' => $question->question,
-            'tags' => 'tag1,tag2',
-        ]);
+    $questions = Question::first();
 
-        $response->assertRedirect('/questions')
-            ->assertSessionHas('message');
-        $this->assertEquals(1, Question::count());
-    }
+    $response = $this->from('question')->put('/questions/'.$questions->id, [
+        'title' => 'New Title',
+        'question' => 'New Question',
+        'tags' => 'tag1,tag3',
+    ]);
 
-    /** @test */
-    public function user_can_edit_question()
-    {
-        $user = User::factory()->create();
-        $question = Question::factory()->create(['user_id' => $user->id]);
-        $this->actingAs($user);
+    expect(Question::first())
+      ->title->toBe('New Title')
+      ->question->toBe('New Question')
+      ->tags->not->toBe('tag1,tag3');
 
-        $this->post('/questions', [
-            'user_id' => $question->user_id,
-            'title' => 'Title',
-            'question' => 'Question',
-            'tags' => 'tag1,tag2',
-        ]);
+    $response->assertRedirect('/questions/'.$questions->id.'/new-title')
+        ->assertSessionHas('message');
+});
 
-        $questions = Question::first();
+it('can delete question', function (){
+    $user = User::factory()->create();
+    $question = Question::factory()->create(['user_id' => $user->id]);
+    $this->actingAs($user);
 
-        $response = $this->from('question')->put('/questions/'.$questions->id, [
-            'title' => 'New Title',
-            'question' => 'New Question',
-            'tags' => 'tag1,tag3',
-        ]);
+    $this->post('/questions', [
+        'user_id' => $question->user_id,
+        'title' => 'Title',
+        'question' => 'Question',
+        'tags' => 'tag1,tag2',
+    ]);
 
-        $this->assertEquals('New Title', Question::first()->title);
-        $this->assertEquals('New Question', Question::first()->question);
-        $this->assertEquals('tag1,tag3', Question::first()->tags);
-        $response->assertRedirect('question')
-            ->assertSessionHas('message');
-    }
+    $questions = Question::first();
 
-    /** @test */
-    public function user_can_delete_question()
-    {
-        $user = User::factory()->create();
-        $question = Question::factory()->create(['user_id' => $user->id]);
-        $this->actingAs($user);
-
-        $this->post('/questions', [
-            'user_id' => $question->user_id,
-            'title' => 'Title',
-            'question' => 'Question',
-            'tags' => 'tag1,tag2',
-        ]);
-
-        $questions = Question::first();
-
-        $response = $this->delete('/questions/'.$questions->id);
-        $this->assertEquals(1, Question::count());
-    }
-}
+    $this->delete('/questions/'.$questions->id);
+    expect(Question::count())->toEqual(1);
+});
