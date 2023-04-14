@@ -1,4 +1,5 @@
-  <form action="{{ route('auth.store') }}" method="post">
+<a href="{{ route('auth.login') }}">login</a>
+<form action="{{ route('auth.store') }}" method="post">
   @csrf
     <h5>Email</h5>
     <input type="email" name="email">
