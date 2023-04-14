@@ -12,3 +12,10 @@ if (! function_exists('remove_tags_whitespace')) {
         return $arr;
     }
 }
+
+if (! function_exists('cache_duration')){
+  function cache_duration()
+  {
+      return now()->addMinute(10);
+  }
+}
