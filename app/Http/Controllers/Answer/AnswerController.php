@@ -7,10 +7,17 @@ use App\Http\Requests\Answer\StoreAnswerRequest;
 use App\Http\Requests\Answer\UpdateAnswerRequest;
 use App\Models\Answer;
 use App\Models\Question;
+use App\Services\AnswerService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class AnswerController extends Controller
 {
-    public function store(StoreAnswerRequest $request)
+    public function __construct(
+        protected AnswerService $answerService
+    ){}
+
+    public function store(StoreAnswerRequest $request): RedirectResponse
     {
         $answer = $request->safe()->merge([
             'user_id' => auth()->id(),
@@ -22,12 +29,9 @@ class AnswerController extends Controller
         return back()->with('message', 'Your answer has been submitted');
     }
 
-    public function edit(Question $question)
+    public function edit(Question $question): View
     {
-        $answer = $question
-            ->answers()
-            ->with(['questions', 'user'])
-            ->first();
+        $answer = $this->answerService->getAnswerData($question);
 
         abort_if(
             $answer->user_id !== auth()->id(),
@@ -40,14 +44,11 @@ class AnswerController extends Controller
         ]);
     }
 
-    public function update(UpdateAnswerRequest $request, Question $question)
+    public function update(UpdateAnswerRequest $request, Question $question): RedirectResponse
     {
         $update = $request->validated();
 
-        $answer = $question
-            ->answers()
-            ->with(['question', 'user'])
-            ->first();
+        $answer = $this->answerService->getAnswerData($question);
 
         abort_if(
             $answer->user_id !== auth()->id(),
@@ -56,17 +57,13 @@ class AnswerController extends Controller
 
         $answer->update($update);
 
-        return redirect()
-            ->route('question.show', [$question->id, $question->slug])
+        return to_route('question.show', [$question->id, $question->slug])
             ->with('message', 'Your answer has been updated successfully!');
     }
 
-    public function destroy(Question $question)
+    public function destroy(Question $question): RedirectResponse
     {
-        $answer = $question
-            ->answers()
-            ->with(['question', 'user'])
-            ->first();
+        $answer = $this->answerService->getAnswerData($question);
 
         abort_if(
             $answer->user_id !== auth()->id(),
@@ -75,8 +72,7 @@ class AnswerController extends Controller
 
         $answer->delete();
 
-        return redirect()
-            ->route('question.show', [$question->id, $question->slug])
+        return to_route('question.show', [$question->id, $question->slug])
             ->with('message', 'Your answer has been deleted successfully!');
     }
 }
