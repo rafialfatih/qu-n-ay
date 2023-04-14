@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Question;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class StoreQuestionRequest extends FormRequest
 {
@@ -14,6 +15,12 @@ class StoreQuestionRequest extends FormRequest
     public function authorize()
     {
         return true;
+    }
+
+    public function preparedForValidation()
+    {
+        $this->merge([
+        ]);
     }
 
     /**

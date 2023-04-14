@@ -5,90 +5,68 @@ namespace App\Http\Controllers\Question;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Question\StoreQuestionRequest;
 use App\Http\Requests\Question\UpdateQuestionRequest;
-use App\Models\Answer;
 use App\Models\Question;
+use App\Services\AnswerService;
 use App\Services\QuestionService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
+use Illuminate\View\View;
 
 class QuestionController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        $questions = Cache::remember('questions', now()->addMinutes(10), function () {
-            return Question::with(['user', 'tags'])
-                ->withCount('answers')
-                ->votes()
-                ->orderByDesc('created_at')
-                ->paginate(15);
-        });
+    public function __construct(
+        protected QuestionService $questionService,
+        protected AnswerService $answerService
+    ){}
 
-        return view('questions.index', [
-            'questions' => $questions,
-        ]);
+    public function index(): View
+    {
+      $questions = Cache::remember(
+          'questions',
+          cache_duration(),
+          fn () => $this->questionService->getAllQuestion()
+      );
+
+      return view('questions.index', [
+            'questions' => $questions
+      ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    public function create(): View
     {
         return view('questions.create');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \App\Http\Requests\StoreQuestionRequest  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreQuestionRequest $request, QuestionService $questionService)
+    public function store(StoreQuestionRequest $request): RedirectResponse
     {
         Cache::forget('questions');
 
-        $store = $request->safe()
-            ->merge([
-                'user_id' => auth()->id(),
-                'slug' => Str::slug($request->title),
-            ]);
+        $store = $request->safe()->merge([
+          'user_id' => auth()->id(),
+          'slug' => Str::slug($request->title)
+        ]);
 
-        $questionService->createQuestion($store->all());
+        $this->questionService->createQuestion($store->all());
 
         return redirect('/questions')->with('message', 'Your question has been submitted');
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Question  $question
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Question $question, $slug)
+    public function show(Question $question, $slug): View
     {
         abort_if(
             $question->slug !== $slug,
             404,
         );
 
-        $question_show = Cache::remember('question-' . $question->id, now()->addMinutes(10), function () use ($question) {
-            return Question::with(['user', 'tags'])
-                ->votes()
-                ->where('id', $question->id)
-                ->firstOrFail();
-        });
+        $question_show = Cache::remember(
+            'question-' . $question->id,
+            cache_duration(),
+            fn () => $this->questionService->getQuestion($question->id)
+        );
 
-        $answer = Answer::with('user')
-            ->votes()
-            ->where('question_id', $question->id)
-            ->get();
+        $answer = $this->answerService->getQuestionsAnswer($question->id);
 
         return view('questions.show', [
             'question' => $question_show,
@@ -96,13 +74,7 @@ class QuestionController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Question  $question
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Question $question, QuestionService $questionService, $slug)
+    public function edit(Question $question, $slug): View
     {
         abort_if(
             Gate::denies('users-allowed', $question->user_id),
@@ -114,23 +86,15 @@ class QuestionController extends Controller
             404,
         );
 
-        $question = Question::where('id', $question->id)->firstOrFail();
-        $tags = $questionService->editQuestionTag($question->tags);
+        $edit = $this->questionService->editQuestion($question, $question->tags);
 
         return view('questions.edit', [
-            'question' => $question,
-            'tags' => $tags,
+            'question' => $edit['question'],
+            'tags' => $edit['tags'],
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \App\Http\Requests\UpdateQuestionRequest  $request
-     * @param  \App\Models\Question  $question
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateQuestionRequest $request, Question $question, QuestionService $questionService)
+    public function update(UpdateQuestionRequest $request, Question $question): RedirectResponse
     {
         Gate::authorize('users-allowed', $question->user_id);
 
@@ -138,25 +102,18 @@ class QuestionController extends Controller
         Cache::forget('question-' . $question->id);
 
         $update = $request->safe()->merge([
-            'slug' => Str::slug($request->title),
+            'slug' => Str::slug($request->title)
         ]);
 
-        $questionService->updateQuestion($update->all(), $question->id);
+        $this->questionService->updateQuestion($update->all(), $question->id);
 
-        return redirect()
-            ->route('question.show', ['question' => $question, 'slug' => $update->slug])
+        return to_route('question.show', ['question' => $question, 'slug' => $update->slug])
             ->with('message', 'Your question has been updated!');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Question  $question
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Question $question)
+    public function destroy(Question $question): RedirectResponse
     {
-        Gate::authorize('users-allowed', $question);
+        Gate::authorize('users-allowed', $question->user_id);
 
         $question->tags()->detach();
         $question->delete();
@@ -164,8 +121,7 @@ class QuestionController extends Controller
         Cache::forget('questions');
         Cache::forget('question-' . $question->id);
 
-        return redirect()
-            ->route('question.index')
+        return to_route('question.index')
             ->with('message', 'Question deleted successfully!');
     }
 }
