@@ -9,25 +9,32 @@ use App\Models\QuestionVote;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
-    /**
-     * Seed the application's database.
-     *
-     * @return void
-     */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        DB::table('users')->insert([
+            'name' => 'Admin',
+            'username' => 'admin',
+            'email' => 'admin@admin.com',
+            'email_verified_at' => now(),
+            'password' => Hash::make('password'),
+            'remember_token' => Str::random(10)
+        ]);
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
-        User::factory(1)->create();
-        Question::factory(1)->create();
-        // QuestionVote::factory(4)->create();
-        Tag::factory(3)->create();
+        User::factory(5)
+            ->has(
+              Question::factory(5)
+                ->hasTags(3)
+            )
+            ->create();
+
+        QuestionVote::factory()
+            ->count(100)
+            ->create();
     }
 }

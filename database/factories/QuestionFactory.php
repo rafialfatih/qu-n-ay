@@ -3,24 +3,19 @@
 namespace Database\Factories;
 
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Question>
- */
 class QuestionFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
-    public function definition()
+    public function definition(): array
     {
+        $title = fake()->sentence(2);
+
         return [
             'id' => fake()->uuid(),
-            'user_id' => 1,
-            'title' => 'Title 1',
-            'slug' => 'title-1',
+            'user_id' => random_int(1, 5),
+            'title' => $title,
+            'slug' => Str::slug($title),
             'question' => fake()->paragraph(),
         ];
     }

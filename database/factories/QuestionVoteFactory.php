@@ -2,23 +2,16 @@
 
 namespace Database\Factories;
 
+use App\Models\Question;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\QuestionVote>
- */
 class QuestionVoteFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
     public function definition()
     {
         return [
-            'user_id' => 1,
-            'question_id' => fake()->uuid(),
+            'user_id' => random_int(1,5),
+            'question_id' => Question::factory(),
             'vote' => 'up',
         ];
     }
